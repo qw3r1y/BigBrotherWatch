@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpSec Widget</title>
+<script>
+(function(){
+  try{
+    if(localStorage.getItem("opsec_theme") === "light"){
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="/style.css">
+<style>
+  html,body{height:auto; min-height:100%}
+  body{overflow-x:hidden; overflow-y:auto}
+  .w-wrap{padding:14px}
+  .w-head{display:flex; align-items:center; gap:8px; margin-bottom:14px; -webkit-app-region:drag; cursor:move}
+  .w-head svg{width:20px; height:20px; color:var(--accent); flex-shrink:0}
+  .w-head b{font-weight:800; letter-spacing:.1em; font-size:13px; text-transform:uppercase}
+  .w-live{display:inline-flex; align-items:center; gap:5px; font-size:9.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:var(--good)}
+  .w-live i{width:6px; height:6px; border-radius:50%; background:var(--good); box-shadow:0 0 6px var(--good-glow); animation:runPulse 1.4s ease-in-out infinite}
+  .w-spacer{flex:1}
+  .w-close{background:none; border:none; color:var(--text-faint); cursor:pointer; font-size:15px; padding:2px 4px; line-height:1; -webkit-app-region:no-drag}
+  .w-close:hover{color:var(--danger)}
+  .w-score{display:flex; align-items:baseline; gap:9px; margin-bottom:4px}
+  .w-score b{font-size:34px; font-weight:800; font-variant-numeric:tabular-nums; line-height:1}
+  .w-score span{font-size:10.5px; font-weight:800; letter-spacing:.08em; text-transform:uppercase}
+  .w-sub{font-size:11px; color:var(--text-faint); margin-bottom:16px}
+  .w-section{font-size:10px; font-weight:700; letter-spacing:.09em; text-transform:uppercase; color:var(--text-faint); margin:0 0 8px}
+  .w-panel{padding:13px 14px; margin-bottom:12px}
+  .w-sysrow{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center}
+  .w-sysrow div b{display:block; font-size:16px; font-weight:750; font-variant-numeric:tabular-nums}
+  .w-sysrow div span{font-size:9.5px; color:var(--text-faint); letter-spacing:.06em; text-transform:uppercase}
+  .w-net{display:flex; justify-content:space-between; font-size:11.5px; font-family:var(--mono); margin-bottom:10px}
+  .w-foot{text-align:center; margin-top:4px}
+  .w-foot a{font-size:11px; color:var(--accent); text-decoration:none; font-weight:600}
+  .w-foot a:hover{color:var(--accent-hover)}
+  .w-offline{padding:30px 14px; text-align:center; color:var(--text-faint); font-size:12px; line-height:1.6}
+</style>
+</head>
+<body>
+<div class="w-wrap">
+  <div class="w-head">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 13c1.6 -3.4 3.9 -5.1 6.5 -5.1s4.9 1.7 6.5 5.1c-1.6 3.4 -3.9 5.1 -6.5 5.1s-4.9 -1.7 -6.5 -5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 13c1.6 -3.4 3.9 -5.1 6.5 -5.1s4.9 1.7 6.5 5.1c-1.6 3.4 -3.9 5.1 -6.5 5.1s-4.9 -1.7 -6.5 -5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="7.5" cy="13" r="1.6" fill="currentColor"/>
+      <circle cx="16.5" cy="13" r="1.6" fill="currentColor"/>
+    </svg>
+    <b>OpSec</b>
+    <span class="w-live" id="wLive"><i></i>Live</span>
+    <div class="w-spacer"></div>
+    <button class="w-close" id="wClose" title="Close">✕</button>
+  </div>
+  <div id="wBody">
+    <div class="w-offline">Connecting…</div>
+  </div>
+</div>
+<script>
+(function(){
+  document.getElementById("wClose").addEventListener("click", () => window.close());
+
+  function fmtRate(b){
+    if (b < 1024) return b.toFixed(0) + " B/s";
+    if (b < 1024*1024) return (b/1024).toFixed(1) + " KB/s";
+    return (b/1024/1024).toFixed(1) + " MB/s";
+  }
+
+  async function poll(){
+    let s;
+    try {
+      const r = await fetch("/api/status");
+      if (!r.ok) throw new Error("unauthorized");
+      s = await r.json();
+    } catch (e) {
+      document.getElementById("wLive").style.color = "var(--danger)";
+      document.getElementById("wBody").innerHTML =
+        '<div class="w-offline">Can\'t reach the dashboard.<br>Open it in a tab first, then reopen this widget.</div>';
+      return;
+    }
+    document.getElementById("wLive").style.removeProperty("color");
+    render(s);
+  }
+
+  function render(s){
+    const band = s.score >= 70 ? "SECURE" : s.score >= 40 ? "ELEVATED" : "AT RISK";
+    const bandColor = s.score >= 70 ? "var(--good)" : s.score >= 40 ? "var(--warn)" : "var(--danger)";
+    const net = s.network || {};
+
+    const activeTools = Object.entries(s.tools)
+      .filter(([, st]) => st === "active")
+      .map(([id]) => s.tool_meta[id].label);
+
+    const rules = [];
+    const fw = s.firewall;
+    if (fw) rules.push({ ok: fw.active, label: fw.active ? `UFW active (${fw.blocked_rules} deny rules)` : "UFW inactive" });
+    if (s.tools.fail2ban && s.tools.fail2ban !== "missing") {
+      const on = s.tools.fail2ban === "active";
+      rules.push({ ok: on, label: on ? `Fail2Ban — ${s.threats.banned_ips || 0} banned` : "Fail2Ban not running" });
+    }
+    if (s.tools.suricata && s.tools.suricata !== "missing") {
+      const on = s.tools.suricata === "active";
+      rules.push({ ok: on, label: on ? `Suricata — ${s.threats.suricata_alerts || 0} alert(s)` : "Suricata not running" });
+    }
+
+    document.getElementById("wBody").innerHTML = `
+      <div class="w-score">
+        <b style="color:${bandColor}">${s.score}%</b>
+        <span style="color:${bandColor}">${band}</span>
+      </div>
+      <div class="w-sub">${s.system.hostname} · ${s.system.distro}</div>
+
+      <div class="w-panel panel">
+        <div class="w-net">
+          <span>IN <b>${fmtRate(net.rx || 0)}</b></span>
+          <span>OUT <b>${fmtRate(net.tx || 0)}</b></span>
+        </div>
+        <div class="w-sysrow">
+          <div><b>${(net.cpu || 0).toFixed(0)}%</b><span>CPU</span></div>
+          <div><b>${(net.mem || 0).toFixed(0)}%</b><span>MEM</span></div>
+          <div><b>${(net.disk || 0).toFixed(0)}%</b><span>DISK</span></div>
+        </div>
+      </div>
+
+      <div class="w-section">Active Tools (${activeTools.length})</div>
+      <div class="w-panel panel prot-chips">
+        ${activeTools.length ? activeTools.map((l) => `<span class="prot-chip">${l}</span>`).join("") : '<span class="prot-empty">Nothing active yet.</span>'}
+      </div>
+
+      <div class="w-section">Active Rules</div>
+      <div class="w-panel panel prot-rules">
+        ${rules.length ? rules.map((r) => `<div class="prot-rule"><span class="prot-rule-dot ${r.ok ? "good" : "warn"}"></span><span class="prot-rule-label">${r.label}</span></div>`).join("") : '<span class="prot-empty">No firewall/IDS installed yet.</span>'}
+      </div>
+
+      <div class="w-foot"><a href="/" target="opsec_dashboard">Open full dashboard →</a></div>
+    `;
+  }
+
+  // Deliberately no EventSource here — this fetch-poll (reusing the same
+  // HTTP/1.1 connection every time, not opening a new one) is the ONLY
+  // network activity this window holds. A browser caps concurrent
+  // connections per origin at 6; the main dashboard tab alone already
+  // holds 5 permanently open (Monitor + 4 log-source streams), so a widget
+  // with its own live SSE stream could tip that over the edge and hang
+  // both windows — this keeps the widget's footprint at zero held-open
+  // connections.
+  poll();
+  setInterval(poll, 5000);
+})();
+</script>
+</body>
+</html>

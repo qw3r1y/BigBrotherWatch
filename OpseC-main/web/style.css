@@ -1,0 +1,854 @@
+/* =========================================================================
+   OpSec Dashboard — "Defense Console" theme
+   Flat, matte black. No glass, no glow-as-decoration, no soft card shadows.
+   One confident blue for brand/interactive, white for content, and color
+   that means something (green = active/good, red = threat, amber =
+   caution). Depth comes from bold type and clean division, not blur.
+   ========================================================================= */
+:root{
+  --bg:            #000000;
+  --bg-2:          #050506;
+  --panel:         #0a0a0c;
+  --panel-2:       #131316;
+  --panel-solid:   #0a0a0c;
+  --border:        rgba(255,255,255,.12);
+  --border-strong: rgba(255,255,255,.24);
+
+  /* text */
+  --text:          #ffffff;
+  --text-dim:      #9a9ca3;
+  --text-faint:    #616268;
+
+  /* signature accent — one confident, saturated blue. This is the ONE
+     "brand" hue: active tab, primary buttons, links, focus rings, and
+     "installed" status. Flat fills, not gradients or glow. */
+  --accent:        #2f5eff;
+  --accent-2:      #1d3fc4;
+  --accent-hover:  #5578ff;
+  --accent-glow:   rgba(47,94,255,.30);
+  --accent-soft:   rgba(47,94,255,.14);
+
+  /* semantic colors — active/threat/caution, layered on top of the accent */
+  --good:          #2fd980;
+  --good-soft:     rgba(47,217,128,.14);
+  --good-glow:     rgba(47,217,128,.30);
+  --warn:          #f0b03d;
+  --warn-soft:     rgba(240,176,61,.14);
+  --danger:        #ff3b4e;
+  --danger-soft:   rgba(255,59,78,.15);
+  --danger-glow:   rgba(255,59,78,.35);
+
+  /* generic surface washes — a faint lift/press of the foreground color over
+     a panel (hover states, tracks, subtle fills). Flip direction per theme:
+     white-on-black in dark mode, black-on-white in light mode. */
+  --wash-1: rgba(255,255,255,.03);
+  --wash-2: rgba(255,255,255,.07);
+  --wash-3: rgba(255,255,255,.1);
+  --wash-4: rgba(255,255,255,.12);
+  --wash-5: rgba(255,255,255,.2);
+  --input-bg:  rgba(0,0,0,.35);
+  --grid-line: rgba(255,255,255,.025);
+  --topbar-bg: rgba(8,11,18,.72);
+
+  /* severity banners (panic bar, alert drop-in) — blended over --bg so they
+     need their own theme-aware bg/border/text, not just the semantic color */
+  --banner-danger-bg1:    rgba(255,87,99,.22);
+  --banner-danger-bg2:    rgba(255,87,99,.10);
+  --banner-danger-border: rgba(255,87,99,.5);
+  --banner-danger-text:   #ffe3e5;
+  --banner-warn-bg1:      rgba(245,184,61,.22);
+  --banner-warn-bg2:      rgba(245,184,61,.10);
+  --banner-warn-border:   rgba(245,184,61,.5);
+  --banner-warn-text:     #fff1d6;
+  --banner-btn-bg:        rgba(255,255,255,.14);
+  --banner-btn-border:    rgba(255,255,255,.32);
+  --banner-btn-bg-hover:  rgba(255,255,255,.24);
+  --banner-btn-text:      #ffffff;
+
+  --radius:   10px;
+  --radius-sm:8px;
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Roboto, Arial, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", "Consolas", "Liberation Mono", monospace;
+}
+
+/* =========================================================================
+   Light mode. Same structure, recalibrated for a white surface: every
+   semantic color (accent/good/warn/danger) gets a slightly darker, more
+   saturated twin here — the original vivid values read fine as solid fills
+   on black but wash out as TEXT on a pale tinted pill over white, so this
+   isn't just an inversion. Default stays dark (see the inline theme script
+   in index.html <head>); this block only applies once the toggle sets
+   data-theme="light" on <html>, or persists it via localStorage.
+   ========================================================================= */
+:root[data-theme="light"]{
+  --bg:            #eceef1;
+  --bg-2:          #e3e5e9;
+  --panel:         #ffffff;
+  --panel-2:       #eef0f3;
+  --panel-solid:   #ffffff;
+  --border:        rgba(15,23,42,.16);
+  --border-strong: rgba(15,23,42,.32);
+
+  --text:          #0b0c0f;
+  --text-dim:      #52555c;
+  --text-faint:    #85888f;
+
+  --accent:        #1d3fc4;
+  --accent-2:      #14297f;
+  --accent-hover:  #2f5eff;
+  --accent-glow:   rgba(29,63,196,.25);
+  --accent-soft:   rgba(29,63,196,.10);
+
+  --good:          #0e9f63;
+  --good-soft:     rgba(14,159,99,.14);
+  --good-glow:     rgba(14,159,99,.25);
+  --warn:          #a8670a;
+  --warn-soft:     rgba(168,103,10,.14);
+  --danger:        #e0273f;
+  --danger-soft:   rgba(224,39,63,.12);
+  --danger-glow:   rgba(224,39,63,.30);
+
+  --wash-1: rgba(0,0,0,.035);
+  --wash-2: rgba(0,0,0,.055);
+  --wash-3: rgba(0,0,0,.07);
+  --wash-4: rgba(0,0,0,.12);
+  --wash-5: rgba(0,0,0,.18);
+  --input-bg:  rgba(0,0,0,.035);
+  --grid-line: rgba(0,0,0,.035);
+  --topbar-bg: rgba(255,255,255,.75);
+
+  --banner-danger-bg1:    rgba(224,39,63,.10);
+  --banner-danger-bg2:    rgba(224,39,63,.03);
+  --banner-danger-border: rgba(224,39,63,.35);
+  --banner-danger-text:   #8a1224;
+  --banner-warn-bg1:      rgba(168,103,10,.14);
+  --banner-warn-bg2:      rgba(168,103,10,.04);
+  --banner-warn-border:   rgba(168,103,10,.4);
+  --banner-warn-text:     #6b4708;
+  --banner-btn-bg:        rgba(0,0,0,.06);
+  --banner-btn-border:    rgba(0,0,0,.18);
+  --banner-btn-bg-hover:  rgba(0,0,0,.1);
+  --banner-btn-text:      #0b0c0f;
+}
+
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  color:var(--text);
+  font-family:var(--font);
+  font-size:13.5px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  background:var(--bg);
+  position:relative;
+  overflow-x:hidden;
+}
+/* flat black with a barely-there grid, the way a blueprint/schematic reads
+   rather than a lit-from-behind glow. No radial glows, no grain. */
+body::before{
+  content:"";
+  position:fixed; inset:0; z-index:-1;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size:56px 56px;
+  mask-image:radial-gradient(circle at 50% 0%, #000 0%, transparent 75%);
+  -webkit-mask-image:radial-gradient(circle at 50% 0%, #000 0%, transparent 75%);
+}
+.hidden{display:none !important}
+[hidden]{display:none !important}   /* so el.hidden (panic banner) reliably hides */
+
+/* ---------- panel primitive: flat, matte, no glass ---------- */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+}
+
+/* ---------- topbar ---------- */
+.topbar{
+  display:flex; align-items:center; gap:26px;
+  padding:0 24px; height:60px;
+  background:var(--topbar-bg);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  position:sticky; top:0; z-index:20;
+}
+.brand{display:flex; align-items:center; gap:10px; color:var(--text)}
+.brand-icon{
+  width:26px; height:26px; color:var(--accent);
+  filter:drop-shadow(0 0 6px var(--accent-glow));
+}
+.brand-name{
+  font-weight:700; letter-spacing:.14em; font-size:14px; text-transform:uppercase;
+  color:var(--text);
+}
+.brand-name b{color:var(--accent); font-weight:700}
+
+.tabs{display:flex; gap:4px; flex:1; height:100%; align-items:center}
+.tab{
+  background:transparent; border:1px solid transparent; color:var(--text-dim);
+  font-family:var(--font); font-size:12.5px; font-weight:600; letter-spacing:.02em;
+  padding:8px 14px; border-radius:9px; cursor:pointer; position:relative;
+  transition:color .15s, background .15s, border-color .15s;
+}
+.tab:hover{color:var(--text); background:var(--panel-2)}
+.tab.active{color:#fff; background:var(--accent); border-color:transparent}
+
+.topbar-right{display:flex; align-items:center; gap:16px}
+.sysinfo{
+  font-family:var(--mono); font-size:11px; color:var(--text-faint);
+  padding:5px 10px; border:1px solid var(--border); border-radius:8px;
+  background:var(--wash-1); white-space:nowrap;
+}
+.sysinfo b{color:var(--accent); font-weight:600}
+
+/* panic button — hold to engage */
+.panic-btn{
+  --hold:0;
+  position:relative; overflow:hidden;
+  background:rgba(255,87,99,.06); color:var(--danger);
+  border:1px solid rgba(255,87,99,.4);
+  padding:8px 16px; border-radius:9px; font-weight:700; font-size:12px;
+  letter-spacing:.04em; text-transform:uppercase; cursor:pointer;
+  transition:all .15s; touch-action:none; user-select:none;
+}
+.panic-btn:hover{background:rgba(255,87,99,.14); box-shadow:0 0 18px -4px var(--danger-glow)}
+.panic-btn::before{
+  content:""; position:absolute; inset:0; z-index:0;
+  background:linear-gradient(90deg, var(--danger), #ff8a93);
+  transform:scaleX(var(--hold)); transform-origin:left; opacity:.9;
+  transition:transform .05s linear;
+}
+.panic-btn span{position:relative; z-index:1}
+.panic-btn.arming{color:#fff; border-color:var(--danger)}
+.panic-btn.on{
+  background:var(--danger); color:#fff; border-color:var(--danger);
+  box-shadow:0 0 22px -3px var(--danger-glow); animation:panicPulse 1.6s ease-in-out infinite;
+}
+.panic-btn.on::before{width:0}
+@keyframes panicPulse{50%{box-shadow:0 0 34px 0 var(--danger-glow)}}
+
+.panic-hint{font-size:10px; color:var(--text-faint); letter-spacing:.04em; white-space:nowrap}
+
+/* panic banner */
+.panic-banner{
+  display:flex; align-items:center; justify-content:center; gap:18px;
+  background:linear-gradient(90deg, var(--banner-danger-bg1), var(--banner-danger-bg2));
+  border-bottom:1px solid var(--banner-danger-border);
+  color:var(--banner-danger-text); padding:9px 16px; font-size:12.5px; font-weight:600;
+  backdrop-filter:blur(8px);
+}
+.panic-banner button{
+  background:var(--banner-btn-bg); border:1px solid var(--banner-btn-border); color:var(--banner-btn-text);
+  padding:5px 12px; border-radius:8px; cursor:pointer; font-size:11.5px; font-weight:600;
+}
+.panic-banner button:hover{background:var(--banner-btn-bg-hover)}
+
+/* ---------- layout ---------- */
+main{max-width:1200px; margin:0 auto; padding:30px 22px 70px}
+.view{animation:viewIn .35s cubic-bezier(.2,.7,.2,1)}
+@keyframes viewIn{from{opacity:0; transform:translateY(8px)}to{opacity:1; transform:none}}
+
+/* ---------- page intro ---------- */
+.page-intro{margin-bottom:22px}
+.page-title{
+  font-size:22px; font-weight:700; margin:0 0 4px; letter-spacing:-.01em;
+  display:flex; align-items:center; gap:10px;
+}
+.page-title::before{
+  content:""; width:4px; height:22px; border-radius:3px;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2));
+  box-shadow:0 0 12px -1px var(--accent-glow);
+}
+.page-sub{font-size:12.5px; color:var(--text-dim); margin:0; max-width:70ch}
+
+/* ---------- stat tiles ---------- */
+.stat-row{display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:24px}
+.stat-card{padding:18px 20px}
+.stat-label{
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:10px;
+}
+.stat-value{font-size:26px; font-weight:750; color:var(--text); font-variant-numeric:tabular-nums; line-height:1}
+.stat-sub{font-size:11.5px; color:var(--text-faint); margin-top:7px}
+.stat-card.status-good  .stat-value{color:var(--good)}
+.stat-card.status-warn  .stat-value{color:var(--warn)}
+.stat-card.status-danger .stat-value{color:var(--danger)}
+
+/* protection-score ring */
+.score-card{display:flex; align-items:center; gap:18px}
+.score-ring{
+  --pct:0;
+  width:78px; height:78px; border-radius:50%; flex-shrink:0;
+  background:
+    conic-gradient(from -90deg, var(--accent) calc(var(--pct)*1%), var(--wash-2) 0);
+  display:grid; place-items:center;
+  filter:drop-shadow(0 0 10px var(--accent-glow));
+  transition:--pct .8s ease;
+}
+.score-ring-inner{
+  width:60px; height:60px; border-radius:50%;
+  background:var(--panel-solid); display:grid; place-items:center;
+  border:1px solid var(--border);
+}
+.score-ring-inner .stat-value{font-size:19px}
+.score-meta{min-width:0}
+
+/* ---------- monitor: resource tiles ---------- */
+.resource-row{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px}
+.resource-card{padding:16px 18px}
+.resource-label{
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:11px;
+}
+.resource-value{font-size:22px; font-weight:750; font-variant-numeric:tabular-nums; margin-bottom:11px}
+.meter{height:6px; border-radius:6px; background:var(--wash-2); overflow:hidden}
+.meter-fill{
+  height:100%; border-radius:6px; width:100%;
+  transform:scaleX(0); transform-origin:left;
+  background:linear-gradient(90deg,var(--accent-2),var(--accent));
+  box-shadow:0 0 12px -2px var(--accent-glow);
+  transition:transform .5s ease;
+}
+.meter-fill.warn{background:linear-gradient(90deg,#e79a2b,var(--warn)); box-shadow:0 0 12px -2px rgba(245,184,61,.4)}
+.meter-fill.danger{background:linear-gradient(90deg,#e5343f,var(--danger)); box-shadow:0 0 12px -2px var(--danger-glow)}
+
+/* ---------- network graph ---------- */
+.hero-panel{padding:18px 20px 8px; margin-bottom:22px}
+.hero-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:6px}
+.hero-title{
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);
+}
+.hero-rates{display:flex; gap:20px; font-size:12px; font-variant-numeric:tabular-nums}
+.rate{display:flex; align-items:center; gap:7px; color:var(--text-dim)}
+.rate b{color:var(--text); font-weight:700}
+.rate i{width:8px; height:8px; border-radius:3px; display:inline-block}
+.rate.rx i{background:var(--accent); box-shadow:0 0 8px var(--accent-glow)}
+.rate.tx i{background:var(--good); box-shadow:0 0 8px var(--good-glow)}
+.net-chart{width:100%; height:150px; display:block}
+
+/* ---------- category rows ---------- */
+.category-block{margin-bottom:22px}
+.category-title{
+  font-size:10.5px; font-weight:700; letter-spacing:.12em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:10px; padding-left:2px;
+  display:flex; align-items:center; gap:8px;
+}
+.category-title::after{content:""; flex:1; height:1px; background:linear-gradient(90deg,var(--border),transparent)}
+.row-list{overflow:hidden; padding:4px}
+.row{
+  display:flex; align-items:center; gap:13px; padding:12px 14px;
+  border-radius:var(--radius-sm);
+  transition:background .12s;
+}
+.row:hover{background:var(--panel-2)}
+.row .pick{accent-color:var(--accent); width:15px; height:15px; cursor:pointer; flex-shrink:0}
+.row-main{flex:1; min-width:0; display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.row-name{font-weight:650; font-size:13px; white-space:nowrap}
+.row-desc{font-size:11.5px; color:var(--text-faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.row-actions{display:flex; gap:8px; flex-shrink:0}
+
+.dot{width:8px; height:8px; border-radius:50%; display:inline-block; flex-shrink:0; position:relative}
+.dot.active{background:var(--good); box-shadow:0 0 8px var(--good-glow)}
+.dot.active::after{
+  content:""; position:absolute; inset:-4px; border-radius:50%;
+  border:1px solid var(--good); opacity:.5; animation:ping 2s ease-out infinite;
+}
+@keyframes ping{0%{transform:scale(.6);opacity:.6}100%{transform:scale(1.5);opacity:0}}
+.dot.installed{background:var(--accent); box-shadow:0 0 8px var(--accent-glow)}
+.dot.missing{background:transparent; border:1.5px solid var(--text-faint)}
+
+.status-pill{
+  font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  padding:3px 9px; border-radius:999px; border:1px solid var(--border); color:var(--text-dim);
+  flex-shrink:0;
+}
+.status-pill.active{color:var(--good); border-color:transparent; background:var(--good-soft)}
+.status-pill.installed{color:var(--accent); border-color:transparent; background:var(--accent-soft)}
+
+/* ---------- buttons ---------- */
+.btn{
+  display:inline-flex; align-items:center; justify-content:center; gap:7px;
+  background:var(--panel-2); color:var(--text); border:1px solid var(--border);
+  padding:7px 14px; border-radius:9px; font-size:12px; font-weight:650;
+  cursor:pointer; transition:all .14s; font-family:var(--font); white-space:nowrap;
+}
+.btn:hover{border-color:var(--border-strong); background:var(--wash-3)}
+.btn.primary{background:var(--accent); color:#fff; border-color:transparent}
+.btn.primary:hover{background:var(--accent-hover)}
+.btn.primary:active{transform:translateY(1px)}
+.btn.danger{background:var(--danger); color:#fff; border-color:transparent}
+.btn.danger:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.danger.ghost{background:transparent; color:var(--danger); border-color:color-mix(in srgb, var(--danger) 45%, transparent)}
+.btn.danger.ghost:hover{background:var(--danger-soft); border-color:var(--danger)}
+.btn.small{padding:5px 11px; font-size:11px}
+.btn:disabled{opacity:.4; cursor:not-allowed}
+
+.toolbar{display:flex; gap:11px; margin-bottom:16px; flex-wrap:wrap; align-items:center}
+.toolbar-spacer{flex:1}
+.toolbar-hint{font-size:11.5px; color:var(--accent); font-weight:600}
+
+/* ---------- actions grid (configure/scans) ---------- */
+.actions-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; margin-bottom:22px}
+/* Scans has a fixed, small set of cards (4) — a grid leaves a lone trailing
+   card stuck at the left edge of its row. Flex + centered wrap keeps every
+   card the same width as the grid version but centers a leftover one. */
+#scansGrid{display:flex; flex-wrap:wrap; justify-content:center}
+#scansGrid .scan-card{flex:1 1 280px; max-width:340px}
+.action-card{padding:18px; display:flex; flex-direction:column}
+.action-title{font-weight:700; font-size:13.5px; margin-bottom:5px}
+.action-desc{color:var(--text-faint); font-size:11.5px; margin-bottom:14px; flex:1}
+.action-card input[type=text], .action-card select{
+  width:100%; background:var(--input-bg); border:1px solid var(--border); color:var(--text);
+  padding:9px 11px; border-radius:9px; font-size:12px; margin-bottom:12px; font-family:var(--mono);
+  outline:none; transition:border-color .14s, box-shadow .14s;
+}
+.action-card input[type=text]:focus, .action-card select:focus{
+  border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft);
+}
+
+/* ---------- console ----------
+   A recessed "well" inside the panel — var(--bg) instead of a translucent
+   black overlay, so it reads as a dark terminal well on the dark theme and
+   a light recessed well on the light theme, instead of staying literally
+   black regardless of theme. */
+.console-wrap{overflow:hidden; background:var(--bg); border:1px solid var(--border); border-radius:var(--radius)}
+.console-head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:10px 16px; border-bottom:1px solid var(--border);
+  font-size:10px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);
+  background:var(--wash-1);
+}
+.console-head::before{
+  content:"●"; color:var(--accent); margin-right:8px; font-size:9px;
+  filter:drop-shadow(0 0 4px var(--accent-glow));
+}
+.console{
+  margin:0; padding:16px; font-family:var(--mono); font-size:12px; line-height:1.7;
+  color:var(--text-dim); max-height:320px; overflow-y:auto; white-space:pre-wrap; word-break:break-word;
+}
+.console-wrap.tall .console{max-height:460px}
+.console:empty::before{content:"$ awaiting output…"; color:var(--text-faint)}
+.console .line-err{color:var(--danger)}
+.console .line-ok{color:var(--good)}
+.console .line-warn{color:var(--warn)}
+.console .line-sent{color:var(--accent); font-weight:600}
+
+/* ---------- console input row (reply to a running process) ---------- */
+.console-input-row{
+  display:flex; gap:8px; padding:10px 12px;
+  border-top:1px solid var(--border); background:var(--wash-1);
+}
+.console-input{
+  flex:1; min-width:0; background:var(--bg); border:1px solid var(--border); color:var(--text);
+  padding:7px 10px; border-radius:8px; font-size:12px; font-family:var(--mono);
+  outline:none; transition:border-color .14s, box-shadow .14s;
+}
+.console-input::placeholder{color:var(--text-faint)}
+.console-input:focus{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+.console-input-row .btn{flex-shrink:0}
+
+/* ---------- scrollbars ---------- */
+::-webkit-scrollbar{width:10px; height:10px}
+::-webkit-scrollbar-thumb{background:var(--wash-4); border-radius:6px; border:2px solid transparent; background-clip:padding-box}
+::-webkit-scrollbar-thumb:hover{background:var(--wash-5); background-clip:padding-box}
+::-webkit-scrollbar-track{background:transparent}
+
+/* ---------- overview: tool cards ---------- */
+/* ---------- spinner + install progress ---------- */
+.spinner{
+  width:12px; height:12px; border-radius:50%; display:inline-block; flex-shrink:0;
+  border:2px solid rgba(255,255,255,.25); border-top-color:currentColor;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.install-progress{
+  display:inline-flex; align-items:center; gap:9px;
+  font-size:12px; font-weight:600; color:var(--accent);
+  padding:6px 12px; border:1px solid color-mix(in srgb, var(--accent) 30%, transparent); border-radius:9px;
+  background:var(--accent-soft);
+}
+.install-progress b{color:#fff; font-weight:700}
+.row.installing{background:var(--accent-soft); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 25%, transparent)}
+
+/* ---------- configure / scans cards ---------- */
+.action-head{display:flex; align-items:center; gap:12px; margin-bottom:11px}
+.action-badge{
+  width:30px; height:30px; flex-shrink:0;
+  display:grid; place-items:center; color:var(--accent);
+}
+.action-badge svg{width:21px; height:21px}
+.action-card{transition:border-color .14s ease}
+.action-card:hover{border-color:var(--border-strong)}
+.action-head .action-title{margin-bottom:0; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.action-params{margin-bottom:4px}
+.action-card .btn.primary{width:100%; margin-top:auto; padding:9px 14px}
+
+/* dependency status + locked state */
+.dep-pill{
+  display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--text-faint);
+  margin-bottom:11px;
+}
+.dep-pill.ok{color:var(--good)}
+.dep-pill.missing{color:var(--warn)}
+.dep-goto{
+  background:none; border:none; color:inherit; text-decoration:underline; cursor:pointer;
+  font-size:11px; font-family:var(--font); padding:0;
+}
+.action-card.locked{opacity:.62}
+.action-card.locked:hover{opacity:.85}
+.action-card.locked .btn.primary{cursor:not-allowed}
+.last-run{font-size:10.5px; color:var(--text-faint); margin-top:9px; text-align:center; font-family:var(--mono)}
+.rec-badge{
+  font-size:9px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--good); background:var(--good-soft); padding:2px 7px; border-radius:999px;
+}
+
+/* ---------- live "this one is running / queued" state ---------- */
+.run-badge{
+  flex-shrink:0; display:inline-flex; align-items:center; gap:5px;
+  font-size:9px; font-weight:800; letter-spacing:.05em; text-transform:uppercase;
+  color:var(--good); background:var(--good-soft); padding:3px 8px; border-radius:999px;
+}
+.run-badge::before{
+  content:""; width:6px; height:6px; border-radius:50%; background:var(--good);
+  box-shadow:0 0 6px var(--good-glow); animation:runPulse 1.4s ease-in-out infinite;
+}
+@keyframes runPulse{0%,100%{opacity:1}50%{opacity:.35}}
+.action-card.running, .scenario-card.running{border-color:color-mix(in srgb, var(--good) 45%, transparent); box-shadow:0 0 0 1px color-mix(in srgb, var(--good) 20%, transparent)}
+.scenario-card.queued{border-color:color-mix(in srgb, var(--accent) 35%, transparent); opacity:.85}
+.scenario-card.queued .sc-steps{color:var(--accent)}
+.scenario-card.running .sc-steps{color:var(--good); font-weight:600}
+.scenario-card.deployed{border-color:color-mix(in srgb, var(--good) 30%, transparent)}
+
+/* toolbar "Running: X · step i/n" indicator */
+.run-status{
+  display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:600; color:var(--good);
+  padding:6px 12px; border:1px solid color-mix(in srgb, var(--good) 30%, transparent); border-radius:9px;
+  background:var(--good-soft);
+}
+.run-status b{color:var(--text); font-weight:700}
+
+/* scenario per-card select checkbox */
+.sc-pick-wrap{display:flex; align-items:center; flex-shrink:0; align-self:center}
+.sc-pick-wrap input{accent-color:var(--accent); width:15px; height:15px; cursor:pointer}
+.action-why{
+  font-size:11.5px; color:var(--text-dim); line-height:1.5; margin-bottom:11px;
+  padding:8px 10px; background:var(--wash-1); border:1px solid var(--border);
+  border-radius:8px;
+}
+.action-why b{color:var(--text); font-weight:650}
+
+/* beginner guidance callout (Configure) */
+.tip-box{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  font-size:12.5px; color:var(--text-dim); line-height:1.6;
+  background:var(--panel); border:1px solid var(--border); border-radius:var(--radius);
+  padding:13px 16px; margin-bottom:18px;
+}
+.tip-box b{color:var(--text)}
+.tip-box .rec-badge{margin:0 1px}
+
+/* ---------- monitor: live log feed ---------- */
+.log-panel{overflow:hidden}
+.log-head{
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+  padding:12px 16px; border-bottom:1px solid var(--border); background:var(--wash-1);
+}
+.log-title{
+  font-size:10.5px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--text-faint);
+}
+.log-legend{display:flex; gap:8px; flex-wrap:wrap}
+.log-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  font-family:var(--mono); font-size:11px; font-weight:600; color:var(--text-dim);
+  background:var(--wash-1); border:1px solid var(--border);
+  padding:4px 10px; border-radius:999px; cursor:pointer; transition:all .14s;
+}
+.log-chip i{width:8px; height:8px; border-radius:50%; background:var(--c,var(--accent)); box-shadow:0 0 8px var(--c,var(--accent))}
+.log-chip:hover{border-color:var(--border-strong); color:var(--text)}
+.log-chip.off{opacity:.4; text-decoration:line-through}
+.log-chip.off i{box-shadow:none; background:var(--text-faint)}
+.log-feed{max-height:460px}
+.log-line{display:flex; gap:10px; align-items:baseline}
+.log-tag{
+  flex-shrink:0; font-size:9.5px; font-weight:700; letter-spacing:.03em; text-transform:uppercase;
+  color:var(--c,var(--accent)); background:color-mix(in srgb, var(--c,var(--accent)) 14%, transparent);
+  border:1px solid color-mix(in srgb, var(--c,var(--accent)) 35%, transparent);
+  padding:0 7px; border-radius:6px; min-width:62px; text-align:center; line-height:1.7;
+}
+.src-suricata{--c:var(--accent)}
+.src-ossec{--c:#9a93c9}
+.src-fail2ban{--c:var(--warn)}
+.src-ufw{--c:var(--good)}
+
+/* ---------- scenarios (playbooks) ----------
+   One quiet visual language, matching every other card in the app. Color is
+   reserved for real status only (a tool you already have = green); nothing
+   here is tinted "for flavor". */
+.scenario-grid{
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:16px; margin-bottom:22px;
+}
+.scenario-card{
+  padding:20px; display:flex; flex-direction:column;
+  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+}
+.scenario-card:hover{border-color:var(--border-strong)}
+.sc-head{display:flex; align-items:flex-start; gap:13px; margin-bottom:13px}
+.sc-badge{
+  width:34px; height:34px; flex-shrink:0; color:var(--accent);
+  display:grid; place-items:center;
+}
+.sc-badge svg{width:24px; height:24px}
+.sc-headtext{flex:1; min-width:0}
+.sc-title{font-weight:700; font-size:15px; letter-spacing:-.01em}
+.sc-steps{font-family:var(--mono); font-size:10.5px; color:var(--text-faint); margin-top:2px}
+.sc-level{
+  flex-shrink:0; font-size:9.5px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+  padding:3px 8px; border-radius:999px; color:var(--text-dim); background:var(--wash-2);
+  border:1px solid var(--border); margin-top:2px;
+}
+.sc-tagline{font-size:12.5px; color:var(--text-dim); line-height:1.55; margin-bottom:9px}
+.sc-detail{font-size:11.5px; color:var(--text-faint); line-height:1.55; margin-bottom:15px}
+.sc-chips{display:flex; flex-wrap:wrap; margin-bottom:13px; font-family:var(--mono); font-size:10.5px}
+.sc-chip{color:var(--text-faint); padding:1px 10px 1px 0; margin-right:9px; border-right:1px solid var(--border)}
+.sc-chip:last-child{border-right:none; margin-right:0; padding-right:0}
+.sc-chip.have{color:var(--good)}
+.sc-foot{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:13px; font-size:11px; color:var(--text-faint)}
+.sc-time{font-family:var(--mono); display:inline-flex; align-items:center; gap:5px}
+.sc-time svg{width:12px; height:12px}
+.sc-have-count{color:var(--text-dim)}
+.sc-have-count.full{color:var(--good); font-weight:700}
+.sc-have-count.partial{color:var(--warn)}
+.scenario-card .btn.primary{width:100%; padding:10px 14px; margin-top:auto}
+
+/* ===================== SOC OVERVIEW ===================== */
+.section-label{
+  font-size:10.5px; font-weight:700; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--text-faint); margin:26px 0 12px;
+}
+
+/* panel heads shared */
+.panel-head{display:flex; align-items:flex-start; justify-content:space-between; padding:16px 18px 0}
+.panel-title{font-size:14px; font-weight:700; display:block}
+.panel-sub{font-size:11px; color:var(--text-faint); display:block; margin-top:2px}
+
+/* ---- Monitor: Active Protection panel ---- */
+.prot-panel{padding-bottom:18px; margin-bottom:22px}
+.prot-grid{display:grid; grid-template-columns:1fr 1fr 1.4fr; gap:22px; padding:16px 18px 0}
+.prot-col-title{
+  font-size:10.5px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:10px;
+}
+.prot-chips{display:flex; flex-wrap:wrap; gap:7px}
+.prot-chip{
+  font-size:11px; font-weight:650; color:var(--good); background:var(--good-soft);
+  padding:4px 10px; border-radius:999px;
+}
+.prot-empty{font-size:11.5px; color:var(--text-faint); line-height:1.5}
+.prot-rules{display:flex; flex-direction:column; gap:9px}
+.prot-rule{display:flex; align-items:center; gap:9px; font-size:12px}
+.prot-rule-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0; background:var(--text-faint)}
+.prot-rule-dot.good{background:var(--good); box-shadow:0 0 6px var(--good-glow)}
+.prot-rule-dot.warn{background:var(--warn)}
+.prot-rule-label{flex:1; color:var(--text)}
+.prot-rule-detail{font-size:10.5px; color:var(--text-faint); font-family:var(--mono); flex-shrink:0}
+@media (max-width:860px){
+  .prot-grid{grid-template-columns:1fr; gap:18px}
+}
+
+.ops-hero{display:grid; grid-template-columns:1.55fr 1fr; gap:16px; margin-bottom:16px}
+
+/* ---- Defense radar ---- */
+.radar-panel{display:flex; flex-direction:column; overflow:hidden}
+.radar-status{
+  font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; white-space:nowrap;
+  color:var(--good); background:var(--good-soft); border:1px solid transparent;
+}
+.radar-status.warn{color:var(--warn); background:var(--warn-soft)}
+.radar-status.danger{color:var(--danger); background:var(--danger-soft)}
+.radar-wrap{flex:1; padding:6px 10px 0; min-height:0}
+.radar{width:100%; height:auto; display:block}
+.radar-legend{display:flex; gap:18px; flex-wrap:wrap; padding:10px 18px 16px; font-size:11px; color:var(--text-dim)}
+.lg{display:flex; align-items:center; gap:7px}
+.lg i{width:9px; height:9px; border-radius:50%; display:inline-block}
+.d-active{background:var(--good); box-shadow:0 0 8px var(--good-glow)}
+.d-installed{background:var(--accent); box-shadow:0 0 6px var(--accent-glow)}
+.d-missing{background:transparent; border:1.5px solid var(--text-faint)}
+.d-threat{background:var(--danger); box-shadow:0 0 8px var(--danger-glow)}
+
+/* ---- Protection gauge ---- */
+.gauge-panel{display:flex; flex-direction:column}
+.gauge-wrap{padding:6px 18px 0; display:flex; justify-content:center}
+.gauge{width:100%; max-width:320px; height:auto; display:block}
+.defense-strip{display:grid; grid-template-columns:repeat(6,1fr); gap:8px; padding:6px 16px 18px}
+.dl{display:flex; flex-direction:column; align-items:center; gap:7px}
+.dl-bar{width:100%; height:44px; border-radius:6px; background:var(--wash-2); position:relative; overflow:hidden}
+.dl-fill{
+  position:absolute; left:0; right:0; bottom:0; width:100%; height:100%;
+  background:linear-gradient(180deg,var(--accent),var(--accent-2)); border-radius:6px 6px 0 0;
+  transform-origin:bottom; transform:scaleY(0); transition:transform .5s ease;
+}
+.dl-fill.warn{background:linear-gradient(180deg,#e79a2b,var(--warn))}
+.dl-fill.danger{background:linear-gradient(180deg,#e5343f,var(--danger))}
+.dl-name{font-size:9.5px; font-weight:600; letter-spacing:.03em; text-transform:uppercase; color:var(--text-faint); text-align:center; line-height:1.1}
+.dl-pct{font-size:11px; font-weight:700; font-variant-numeric:tabular-nums}
+
+/* ---- ops live cards ---- */
+.ops-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:8px}
+.ops-card{padding:18px; display:flex; flex-direction:column}
+.ops-card-head{display:flex; align-items:center; gap:12px; margin-bottom:16px}
+.ops-badge{width:32px; height:32px; flex-shrink:0; display:grid; place-items:center; color:var(--good)}
+.ops-badge svg{width:23px; height:23px}
+.ops-badge.neutral{color:var(--accent)}
+.ops-badge.amber{color:var(--warn)}
+.ops-card-title{font-size:13.5px; font-weight:700}
+.ops-card-tag{font-size:11px; color:var(--text-faint); margin-top:1px}
+.ops-count{margin-left:auto; font-size:22px; font-weight:750; font-variant-numeric:tabular-nums}
+.ops-bars{display:flex; align-items:flex-end; gap:4px; height:46px; margin-bottom:14px}
+.ops-bars i{flex:1; background:linear-gradient(180deg,var(--accent),color-mix(in srgb, var(--accent) 25%, transparent)); border-radius:3px 3px 0 0; min-height:3px}
+.ops-rows{display:flex; flex-direction:column; gap:9px; margin-bottom:14px}
+.ops-row{display:flex; align-items:center; gap:9px; font-size:12px}
+.ops-row .rl{color:var(--text-dim); flex:1; display:flex; align-items:center; gap:8px; min-width:0}
+.ops-row .rl b{color:var(--text); font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+.ops-row .rv{font-weight:700; font-variant-numeric:tabular-nums}
+.ops-row .rt{font-size:10.5px; color:var(--text-faint); font-family:var(--mono)}
+.ops-row .mini-dot{width:7px; height:7px; border-radius:50%; flex-shrink:0}
+.ops-link{margin-top:auto; font-size:12px; font-weight:650; color:var(--accent); cursor:pointer; display:inline-flex; align-items:center; gap:5px; background:none; border:none; padding:0; font-family:var(--font)}
+.ops-link:hover{color:var(--accent-hover)}
+.ops-progress{position:relative; width:96px; height:96px; margin:0 auto 14px}
+
+/* ---- tab badge ---- */
+.tab-badge{
+  display:inline-grid; place-items:center; min-width:17px; height:17px; padding:0 5px; margin-left:6px;
+  border-radius:999px; background:var(--danger); color:#fff; font-size:10px; font-weight:800; vertical-align:middle;
+}
+
+/* ---- autostart chip ---- */
+.autostart-chip{
+  display:inline-flex; align-items:center; gap:7px; cursor:pointer; white-space:nowrap;
+  background:var(--wash-1); border:1px solid var(--border); color:var(--text-dim);
+  padding:6px 11px; border-radius:8px; font-size:11px; font-weight:600; font-family:var(--font);
+  transition:all .14s;
+}
+.autostart-chip:hover{border-color:var(--border-strong); color:var(--text)}
+.as-dot{width:8px; height:8px; border-radius:50%; background:var(--text-faint)}
+.autostart-chip.on{color:var(--good); border-color:rgba(52,211,153,.35)}
+.autostart-chip.on .as-dot{background:var(--good); box-shadow:0 0 8px var(--good-glow)}
+
+/* small icon-only button — for controls that don't need a text label
+   (theme toggle: sits at the far right of the topbar, deliberately small) */
+.icon-btn{
+  display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  width:30px; height:30px; padding:0;
+  background:var(--wash-1); border:1px solid var(--border); border-radius:8px;
+  color:var(--text-dim); cursor:pointer; transition:all .14s;
+}
+.icon-btn:hover{border-color:var(--border-strong); color:var(--text)}
+.icon-btn.on{color:var(--accent); border-color:var(--accent-soft)}
+.icon-btn svg{width:15px; height:15px}
+
+/* ---- alert drop bar ---- */
+.alert-drop{
+  display:flex; align-items:center; gap:14px; padding:11px 20px;
+  background:linear-gradient(90deg, var(--banner-danger-bg1), var(--banner-danger-bg2));
+  border-bottom:1px solid var(--banner-danger-border); color:var(--banner-danger-text);
+  animation:dropIn .4s cubic-bezier(.2,.8,.2,1);
+}
+.alert-drop.sev-warn{
+  background:linear-gradient(90deg, var(--banner-warn-bg1), var(--banner-warn-bg2));
+  border-bottom-color:var(--banner-warn-border); color:var(--banner-warn-text);
+}
+@keyframes dropIn{from{transform:translateY(-100%); opacity:0}to{transform:none; opacity:1}}
+.alert-drop-dot{width:9px; height:9px; border-radius:50%; background:var(--danger); box-shadow:0 0 0 0 var(--danger-glow); animation:alertPing 1.4s ease-out infinite; flex-shrink:0}
+.alert-drop.sev-warn .alert-drop-dot{background:var(--warn); animation:none}
+@keyframes alertPing{0%{box-shadow:0 0 0 0 rgba(255,87,99,.5)}100%{box-shadow:0 0 0 10px rgba(255,87,99,0)}}
+.alert-drop-text{flex:1; display:flex; gap:9px; align-items:baseline; flex-wrap:wrap; font-size:12.5px}
+.alert-drop-text b{font-weight:700}
+.alert-drop-text span{color:inherit; opacity:.85}
+.alert-drop-view{background:var(--banner-btn-bg); border:1px solid var(--banner-btn-border); color:var(--banner-btn-text); padding:5px 13px; border-radius:8px; font-size:11.5px; font-weight:700; cursor:pointer}
+.alert-drop-view:hover{background:var(--banner-btn-bg-hover)}
+.alert-drop-x{background:none; border:none; color:inherit; opacity:.7; cursor:pointer; font-size:13px; padding:2px 4px}
+.alert-drop-x:hover{opacity:1}
+
+/* ---- alerts screen ---- */
+.alerts-summary{display:flex; gap:12px; flex-wrap:wrap; margin-bottom:18px}
+.as-tile{flex:1; min-width:130px; padding:15px 17px; border-radius:var(--radius); border:1px solid var(--border); background:var(--panel)}
+.as-tile .n{font-size:26px; font-weight:750; font-variant-numeric:tabular-nums; line-height:1}
+.as-tile .l{font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--text-faint); margin-top:6px}
+.as-tile.crit{border-color:rgba(255,87,99,.35)} .as-tile.crit .n{color:var(--danger)}
+.as-tile.warn{border-color:rgba(245,184,61,.35)} .as-tile.warn .n{color:var(--warn)}
+.as-tile.ok .n{color:var(--good)}
+
+/* severity distribution bar: the shape of what's outstanding, at a glance */
+.sev-bar-wrap{padding:14px 16px; margin-bottom:14px}
+.sev-bar{display:flex; height:8px; border-radius:4px; overflow:hidden; background:var(--wash-2); gap:2px}
+.sev-seg{height:100%}
+.sev-seg.crit{background:var(--danger)}
+.sev-seg.warn{background:var(--warn)}
+.sev-seg.info{background:var(--accent)}
+
+/* by-area breakdown: jump straight to the tab that needs attention */
+.alerts-areas{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px}
+.alerts-areas:empty{display:none; margin-bottom:0}
+.area-chip{
+  display:inline-flex; align-items:center; gap:7px;
+  background:var(--panel); border:1px solid var(--border); color:var(--text-dim);
+  padding:6px 8px 6px 12px; border-radius:999px; font-size:12px; font-weight:600; cursor:pointer;
+  transition:border-color .14s, color .14s;
+}
+.area-chip:hover{border-color:var(--border-strong); color:var(--text)}
+.area-chip b{
+  font-size:11px; font-weight:800; color:var(--text); background:var(--wash-3);
+  min-width:18px; height:18px; padding:0 5px; border-radius:999px; display:inline-grid; place-items:center;
+}
+
+.alerts-list{display:flex; flex-direction:column; gap:10px}
+.alert-item{display:flex; align-items:flex-start; gap:14px; padding:16px 18px; border-radius:var(--radius); border:1px solid var(--border); background:var(--panel); position:relative; overflow:hidden}
+.alert-item::before{content:""; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--text-faint)}
+.alert-item.critical::before{background:var(--danger); box-shadow:0 0 12px var(--danger-glow)}
+.alert-item.warn::before{background:var(--warn)}
+.alert-item.info::before{background:var(--accent)}
+.alert-ico{width:34px; height:34px; border-radius:9px; flex-shrink:0; display:grid; place-items:center}
+.alert-ico svg{width:18px; height:18px}
+.alert-item.critical .alert-ico{color:var(--danger); background:var(--danger-soft)}
+.alert-item.warn .alert-ico{color:var(--warn); background:var(--warn-soft)}
+.alert-item.info .alert-ico{color:var(--accent); background:var(--accent-soft)}
+.alert-body{flex:1; min-width:0}
+.alert-title{font-weight:700; font-size:13.5px; display:flex; align-items:center; gap:10px}
+.alert-sev{font-size:9.5px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:1px 7px; border-radius:999px}
+.alert-item.critical .alert-sev{color:var(--danger); background:var(--danger-soft)}
+.alert-item.warn .alert-sev{color:var(--warn); background:var(--warn-soft)}
+.alert-item.info .alert-sev{color:var(--accent); background:var(--accent-soft)}
+.alert-detail{font-size:12px; color:var(--text-dim); margin-top:4px; line-height:1.5}
+.alert-fix{flex-shrink:0; align-self:center}
+.alerts-empty{text-align:center; padding:60px 20px; color:var(--text-faint)}
+.alerts-empty .big{font-size:15px; font-weight:700; color:var(--good); margin-bottom:6px}
+
+@media (max-width:900px){
+  .ops-hero{grid-template-columns:1fr}
+  .ops-cards{grid-template-columns:1fr}
+  .defense-strip{grid-template-columns:repeat(3,1fr)}
+}
+@media (prefers-reduced-motion: reduce){
+  .alert-drop-dot{animation:none}
+}
+
+/* ---------- responsive ---------- */
+@media (max-width:820px){
+  .topbar{flex-wrap:wrap; height:auto; padding:12px 16px; gap:14px}
+  .tabs{order:3; width:100%; overflow-x:auto; gap:6px}
+  .sysinfo{display:none}
+  .stat-row, .resource-row{grid-template-columns:1fr 1fr}
+  .row-desc{white-space:normal}
+  .page-title{font-size:19px}
+}
+@media (max-width:520px){
+  .stat-row, .resource-row{grid-template-columns:1fr}
+  .panic-hint{display:none}
+}

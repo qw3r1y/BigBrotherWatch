@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpSec Dashboard</title>
+<script>
+// Applied before first paint so switching to light mode never flashes dark
+// first. Default stays dark (unset attribute) unless the user picked light.
+(function(){
+  try{
+    if(localStorage.getItem("opsec_theme") === "light"){
+      document.documentElement.setAttribute("data-theme", "light");
+    }
+  }catch(e){}
+})();
+</script>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="panic-banner" id="panicBanner" hidden>
+  <span>⚠ PANIC MODE ACTIVE: all inbound &amp; outbound traffic blocked except loopback</span>
+  <button id="panicBannerOff">Disengage</button>
+</div>
+
+<div class="alert-drop" id="alertDrop" hidden>
+  <span class="alert-drop-dot"></span>
+  <div class="alert-drop-text"><b id="alertDropTitle"></b><span id="alertDropDetail"></span></div>
+  <button class="alert-drop-view" id="alertDropView">Review</button>
+  <button class="alert-drop-x" id="alertDropClose" aria-label="Dismiss">✕</button>
+</div>
+
+<header class="topbar">
+  <div class="brand">
+    <svg class="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M1 13c1.6 -3.4 3.9 -5.1 6.5 -5.1s4.9 1.7 6.5 5.1c-1.6 3.4 -3.9 5.1 -6.5 5.1s-4.9 -1.7 -6.5 -5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M10 13c1.6 -3.4 3.9 -5.1 6.5 -5.1s4.9 1.7 6.5 5.1c-1.6 3.4 -3.9 5.1 -6.5 5.1s-4.9 -1.7 -6.5 -5.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="7.5" cy="13" r="1.6" fill="currentColor"/>
+      <circle cx="16.5" cy="13" r="1.6" fill="currentColor"/>
+    </svg>
+    <span class="brand-name">Op<b>Sec</b></span>
+  </div>
+
+  <nav class="tabs" id="tabs">
+    <button class="tab active" data-tab="overview">Overview</button>
+    <button class="tab" data-tab="alerts">Alerts<span class="tab-badge" id="alertsBadge" hidden>0</span></button>
+    <button class="tab" data-tab="scenarios">Scenarios</button>
+    <button class="tab" data-tab="install">Install</button>
+    <button class="tab" data-tab="configure">Configure</button>
+    <button class="tab" data-tab="monitor">Monitor</button>
+    <button class="tab" data-tab="scans">Scans</button>
+  </nav>
+
+  <div class="topbar-right">
+    <button class="autostart-chip" id="autostartChip" title="Run OpSec automatically on every boot">
+      <span class="as-dot" id="autostartDot"></span><span id="autostartLabel">Autostart</span>
+    </button>
+    <button class="autostart-chip on" id="sudoChip" title="Every install/configure/scan runs with sudo. Click to switch to running commands without sudo.">
+      <span class="as-dot" id="sudoDot"></span><span id="sudoLabel">Sudo: On</span>
+    </button>
+    <div class="sysinfo" id="sysinfo">—</div>
+    <span class="panic-hint" id="panicHint">hold to engage</span>
+    <button class="panic-btn" id="panicBtn" title="Hold to engage: emergency network lockdown"><span>Panic</span></button>
+    <button class="icon-btn" id="themeChip" title="Switch between dark and light mode">
+      <span id="themeIcon"></span>
+    </button>
+    <button class="icon-btn" id="widgetPopoutBtn" title="Open a small live-status widget you can drag anywhere on your desktop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16h-16z"/><path d="M14 14h6v6h-6z" fill="currentColor" stroke="none"/></svg>
+    </button>
+  </div>
+</header>
+
+<main>
+  <!-- OVERVIEW -->
+  <section class="view" id="view-overview">
+    <div class="page-intro">
+      <h1 class="page-title">Overview</h1>
+      <p class="page-sub">Live defense posture, threat activity, and protection score.</p>
+    </div>
+
+    <div class="ops-hero">
+      <div class="radar-panel panel">
+        <div class="panel-head">
+          <div><span class="panel-title">Defense Grid</span><span class="panel-sub">Live posture</span></div>
+          <span class="radar-status" id="radarStatus">—</span>
+        </div>
+        <div class="radar-wrap">
+          <svg id="radar" class="radar" viewBox="0 0 620 440" preserveAspectRatio="xMidYMid meet"></svg>
+        </div>
+        <div class="radar-legend">
+          <span class="lg"><i class="d-active"></i>Active</span>
+          <span class="lg"><i class="d-installed"></i>Installed</span>
+          <span class="lg"><i class="d-missing"></i>Missing</span>
+          <span class="lg"><i class="d-threat"></i>Threat</span>
+        </div>
+      </div>
+
+      <div class="gauge-panel panel">
+        <div class="panel-head">
+          <div><span class="panel-title">Protection Score</span><span class="panel-sub">Weighted by coverage</span></div>
+        </div>
+        <div class="gauge-wrap">
+          <svg id="gauge" class="gauge" viewBox="0 0 300 200"></svg>
+        </div>
+        <div class="defense-strip" id="defenseStrip"></div>
+      </div>
+    </div>
+
+    <div class="ops-cards">
+      <div class="ops-card panel" id="cardDefenses"></div>
+      <div class="ops-card panel" id="cardScans"></div>
+      <div class="ops-card panel" id="cardEvents"></div>
+    </div>
+  </section>
+
+  <!-- ALERTS -->
+  <section class="view hidden" id="view-alerts">
+    <div class="page-intro">
+      <h1 class="page-title">Alerts</h1>
+      <p class="page-sub">Everything that needs your attention right now, most urgent first.</p>
+    </div>
+    <div class="alerts-summary" id="alertsSummary"></div>
+    <div class="sev-bar-wrap panel" id="sevBarWrap" hidden>
+      <div class="sev-bar" id="alertsBar"></div>
+    </div>
+    <div class="alerts-areas" id="alertsAreas"></div>
+    <div id="alertsList" class="alerts-list"></div>
+  </section>
+
+  <!-- SCENARIOS -->
+  <section class="view hidden" id="view-scenarios">
+    <div class="page-intro">
+      <h1 class="page-title">Scenarios</h1>
+      <p class="page-sub">One-click playbooks. Each one installs the tools it needs (skipping anything you already have) and applies the right hardening in a single move. Watch it run live below.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="scSelectAllBtn">Select all</button>
+      <button class="btn primary" id="scRunSelectedBtn">Run selected</button>
+      <button class="btn ghost" id="scClearSelectedBtn">Clear selection</button>
+      <span class="run-status" id="scRunStatus" hidden></span>
+      <button class="btn danger ghost small" id="scStopBtn" hidden>Stop</button>
+      <div class="toolbar-spacer"></div>
+      <span class="toolbar-hint" id="scSelectedCount"></span>
+    </div>
+    <div id="scenariosGrid" class="scenario-grid"></div>
+    <div class="console-wrap tall panel" id="scenarioConsoleWrap" hidden>
+      <div class="console-head"><span id="scenarioTitle">Playbook output</span><button class="btn ghost small" id="clearConsole5">Clear</button></div>
+      <pre class="console" id="console-scenarios"></pre>
+      <form class="console-input-row" data-console="console-scenarios">
+        <input type="text" class="console-input" placeholder="If a step is waiting on a prompt above, answer it here and press Enter…" autocomplete="off">
+        <button type="submit" class="btn small">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- INSTALL -->
+  <section class="view hidden" id="view-install">
+    <div class="page-intro">
+      <h1 class="page-title">Install</h1>
+      <p class="page-sub">Pick the tools you want. Everything here is a distro-detected package install; nothing is downloaded from outside your package manager except where noted.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="selectAllBtn">Select all missing</button>
+      <button class="btn primary" id="installSelectedBtn">Install selected</button>
+      <button class="btn ghost" id="clearSelectedBtn">Clear selection</button>
+      <span class="install-progress" id="installProgress" hidden></span>
+      <button class="btn danger ghost small" id="installStopBtn" hidden>Stop</button>
+      <div class="toolbar-spacer"></div>
+      <span class="toolbar-hint" id="selectedCount"></span>
+    </div>
+    <div id="installGrid"></div>
+    <div class="console-wrap panel">
+      <div class="console-head"><span>Console</span><button class="btn ghost small" id="clearConsole1">Clear</button></div>
+      <pre class="console" id="console-install"></pre>
+      <form class="console-input-row" data-console="console-install">
+        <input type="text" class="console-input" placeholder="If the install is waiting on a prompt above, answer it here and press Enter…" autocomplete="off">
+        <button type="submit" class="btn small">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- CONFIGURE -->
+  <section class="view hidden" id="view-configure">
+    <div class="page-intro">
+      <h1 class="page-title">Configure</h1>
+      <p class="page-sub">One-click hardening actions for tools you've already installed.</p>
+    </div>
+    <div class="tip-box">
+      <b>New to this?</b> Start with the two <span class="rec-badge">Recommended</span> actions below, in order: close the remote-access ports, then apply the Fail2Ban jail. That pair covers most of the risk a fresh machine has.
+    </div>
+    <div id="actionsGrid" class="actions-grid"></div>
+    <div class="console-wrap panel">
+      <div class="console-head"><span>Console</span><button class="btn ghost small" id="clearConsole2">Clear</button></div>
+      <pre class="console" id="console-configure"></pre>
+      <form class="console-input-row" data-console="console-configure">
+        <input type="text" class="console-input" placeholder="If the action is waiting on a prompt above, answer it here and press Enter…" autocomplete="off">
+        <button type="submit" class="btn small">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- MONITOR -->
+  <section class="view hidden" id="view-monitor">
+    <div class="page-intro">
+      <h1 class="page-title">Monitor</h1>
+      <p class="page-sub">Live system resources, network throughput, and security logs.</p>
+    </div>
+
+    <div class="prot-panel panel">
+      <div class="panel-head">
+        <div><span class="panel-title">Active Protection</span><span class="panel-sub">What's actually running right now, not just installed</span></div>
+      </div>
+      <div class="prot-grid">
+        <div class="prot-col">
+          <div class="prot-col-title">Active Tools</div>
+          <div class="prot-chips" id="activeToolsChips"></div>
+        </div>
+        <div class="prot-col">
+          <div class="prot-col-title">Active Scenarios</div>
+          <div class="prot-chips" id="activeScenariosChips"></div>
+        </div>
+        <div class="prot-col prot-col-wide">
+          <div class="prot-col-title">Active Rules</div>
+          <div class="prot-rules" id="activeRulesList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="resource-row">
+      <div class="resource-card panel">
+        <div class="resource-label">CPU</div>
+        <div class="resource-value" id="resCpu">—</div>
+        <div class="meter"><div class="meter-fill" id="resCpuBar"></div></div>
+      </div>
+      <div class="resource-card panel">
+        <div class="resource-label">Memory</div>
+        <div class="resource-value" id="resMem">—</div>
+        <div class="meter"><div class="meter-fill" id="resMemBar"></div></div>
+      </div>
+      <div class="resource-card panel">
+        <div class="resource-label">Disk (/)</div>
+        <div class="resource-value" id="resDisk">—</div>
+        <div class="meter"><div class="meter-fill" id="resDiskBar"></div></div>
+      </div>
+      <div class="resource-card panel">
+        <div class="resource-label">Uptime</div>
+        <div class="resource-value" id="resUptime">—</div>
+      </div>
+    </div>
+
+    <div class="hero-panel panel">
+      <div class="hero-head">
+        <div class="hero-title">Network throughput</div>
+        <div class="hero-rates">
+          <span class="rate rx"><i></i>IN <b id="rateRx">0 B/s</b></span>
+          <span class="rate tx"><i></i>OUT <b id="rateTx">0 B/s</b></span>
+        </div>
+      </div>
+      <svg id="netChart" class="net-chart" viewBox="0 0 600 130" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="rxFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#2f5eff" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#2f5eff" stop-opacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon id="rxArea" fill="url(#rxFill)" points=""/>
+        <polyline id="rxLine" fill="none" stroke="#2f5eff" stroke-width="1.8" points=""/>
+        <polyline id="txLine" fill="none" stroke="#2fd980" stroke-width="1.8" stroke-dasharray="4,3" points=""/>
+      </svg>
+    </div>
+
+    <div class="log-panel panel">
+      <div class="log-head">
+        <span class="log-title">Live security logs</span>
+        <div class="log-legend" id="logLegend"></div>
+        <div class="toolbar-spacer"></div>
+        <button class="btn ghost small" id="clearConsole3">Clear</button>
+      </div>
+      <pre class="console log-feed" id="console-monitor"></pre>
+    </div>
+  </section>
+
+  <!-- SCANS -->
+  <section class="view hidden" id="view-scans">
+    <div class="page-intro">
+      <h1 class="page-title">Scans</h1>
+      <p class="page-sub">Run an on-demand rootkit or malware scan and watch the output live.</p>
+    </div>
+    <div id="scansGrid" class="actions-grid"></div>
+    <div class="console-wrap tall panel">
+      <div class="console-head">
+        <span id="scansConsoleTitle">Scan output</span>
+        <div class="toolbar-spacer"></div>
+        <button class="btn danger ghost small" id="scansStopBtn" hidden>Stop</button>
+        <button class="btn ghost small" id="clearConsole4">Clear</button>
+      </div>
+      <pre class="console" id="console-scans"></pre>
+      <form class="console-input-row" data-console="console-scans">
+        <input type="text" class="console-input" placeholder="If the scan is waiting on a prompt above, answer it here and press Enter…" autocomplete="off">
+        <button type="submit" class="btn small">Send</button>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
