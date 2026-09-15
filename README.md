@@ -1,4 +1,4 @@
-# OPSEC Dashboard 🛡️
+# Big Brother Is Watching You :eye: :eye:
 
 A local, browser-based control panel for hardening and monitoring a Linux
 box: install privacy/security tools, run one-click hardening playbooks,
